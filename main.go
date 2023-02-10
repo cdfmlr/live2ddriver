@@ -19,7 +19,7 @@ var (
 	verbose  = flag.Bool("verbose", false, "verbose mode")
 )
 
-func init() {
+func cli() {
 	flag.Usage = func() {
 		fmt.Printf("Usage: %s [options]\n", os.Args[0])
 		fmt.Printf("Forward messages from stdin | http to WebSocket clients.\n")
@@ -36,20 +36,22 @@ func init() {
 // #endregion CLI
 
 func main() {
-	live2DDriver := NewLive2DDriver()
+	cli()
+
+	forwarder := NewMessageForwarder()
 
 	http.Handle("/live2d", websocket.Handler(func(c *websocket.Conn) {
-		live2DDriver.ForwardMessageTo(c)
+		forwarder.ForwardMessageTo(c)
 	}))
 
 	if *stdin {
 		go func() {
-			ForwardMessageFromStdin(live2DDriver)
+			ForwardMessageFromStdin(forwarder)
 		}()
 	}
 	if *httpAddr != "" {
 		go func() {
-			ForwardMessageFromHTTP(live2DDriver, *httpAddr)
+			ForwardMessageFromHTTP(forwarder, *httpAddr)
 		}()
 	}
 
