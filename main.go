@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
 )
 
@@ -35,6 +36,10 @@ func cli() {
 
 // #endregion CLI
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 func main() {
 	cli()
 
@@ -46,12 +51,12 @@ func main() {
 
 	if *stdin {
 		go func() {
-			ForwardMessageFromStdin(forwarder)
+			forwarder.ForwardMessageFromStdin()
 		}()
 	}
 	if *httpAddr != "" {
 		go func() {
-			ForwardMessageFromHTTP(forwarder, *httpAddr)
+			forwarder.ForwardMessageFromHTTP(*httpAddr)
 		}()
 	}
 
