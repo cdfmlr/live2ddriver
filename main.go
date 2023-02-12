@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"live2ddriver/live2ddriver"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,10 @@ var (
 	httpAddr = flag.String("httpAddr", ":9002", "(in) forward messages from HTTP server address. Empty to disable.")
 	stdin    = flag.Bool("stdin", false, "(in) forward messages from stdin")
 	verbose  = flag.Bool("verbose", false, "verbose mode")
+
+	// drivers
+
+	shizukuAddr = flag.String("shizuku", "", "Shizuku driver server address (text in). Empty to disable. (e.g. localhost:9004)")
 )
 
 func cli() {
@@ -26,9 +31,11 @@ func cli() {
 		fmt.Printf("Forward messages from stdin | http to WebSocket clients.\n")
 		flag.PrintDefaults()
 	}
+
 	flag.Parse()
-	if !*stdin && *httpAddr == "" {
-		fmt.Fprintf(os.Stderr, "Error: no input source: -stdin or -httpAddr is required.\n")
+	
+	if !*stdin && *httpAddr == "" && *shizukuAddr == "" {
+		fmt.Fprintf(os.Stderr, "Error: no input source: -stdin or -httpAddr or -shizuku is required.\n")
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -57,6 +64,15 @@ func main() {
 	if *httpAddr != "" {
 		go func() {
 			forwarder.ForwardMessageFromHTTP(*httpAddr)
+		}()
+	}
+	if *shizukuAddr != "" {
+		driver := live2ddriver.NewShizukuDriver()
+
+		go func() {
+			verboseLogf("(in) Shizuku Driver Listening on %s...\n", *shizukuAddr)
+			dh := live2ddriver.DriveLive2DHTTP(driver, *shizukuAddr)
+			forwarder.ForwardMessageFrom(dh)
 		}()
 	}
 

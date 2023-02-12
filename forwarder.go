@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"live2ddriver/live2ddriver"
 	"net/http"
 	"os"
 	"sync"
@@ -135,7 +136,7 @@ func (f *messageForwarder) ForwardMessageFromHTTP(addr string) {
 
 	router := gin.Default()
 	router.GET("/live2d", func(c *gin.Context) {
-		var req Live2DRequest
+		var req live2ddriver.Live2DRequest
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
