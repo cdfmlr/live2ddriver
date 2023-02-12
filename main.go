@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"live2ddriver/live2ddriver"
+	"live2ddriver/wsforwarder"
 	"log"
 	"net/http"
 	"os"
@@ -12,7 +13,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// #region CLI
+// region CLI
 
 var (
 	wsAddr   = flag.String("wsAddr", ":9001", "(out) forward messages to WebSocket server address")
@@ -33,15 +34,17 @@ func cli() {
 	}
 
 	flag.Parse()
-	
+
 	if !*stdin && *httpAddr == "" && *shizukuAddr == "" {
 		fmt.Fprintf(os.Stderr, "Error: no input source: -stdin or -httpAddr or -shizuku is required.\n")
 		flag.Usage()
 		os.Exit(1)
 	}
+
+	wsforwarder.Verbose = *verbose
 }
 
-// #endregion CLI
+// endregion CLI
 
 func init() {
 	gin.SetMode(gin.ReleaseMode)
@@ -50,7 +53,7 @@ func init() {
 func main() {
 	cli()
 
-	forwarder := NewMessageForwarder()
+	forwarder := wsforwarder.NewMessageForwarder()
 
 	http.Handle("/live2d", websocket.Handler(func(c *websocket.Conn) {
 		forwarder.ForwardMessageTo(c)
@@ -63,7 +66,10 @@ func main() {
 	}
 	if *httpAddr != "" {
 		go func() {
-			forwarder.ForwardMessageFromHTTP(*httpAddr)
+			err := forwarder.ForwardMessageFromHTTP(*httpAddr)
+			if err != nil {
+				panic(err)
+			}
 		}()
 	}
 	if *shizukuAddr != "" {
@@ -82,7 +88,7 @@ func main() {
 	}
 }
 
-// #region log
+// region log
 
 func verboseLogf(format string, a ...interface{}) {
 	if *verbose {
@@ -90,4 +96,4 @@ func verboseLogf(format string, a ...interface{}) {
 	}
 }
 
-// #endregion log
+// endregion log

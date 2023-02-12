@@ -1,4 +1,4 @@
-package main
+package wsforwarder
 
 import (
 	"net/http"

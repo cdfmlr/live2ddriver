@@ -1,10 +1,11 @@
-package main
+package wsforwarder
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
 	"live2ddriver/live2ddriver"
+	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -81,8 +82,7 @@ func (f *messageForwarder) SendMessage(msg []byte) {
 	}
 }
 
-// deprecated 似乎会搞出更多 goroutines 不划算了。
-// 直接传个 *Live2DDriver，自己调 SendMessage 多舒服 (see in.go)。
+// ForwardMessageFrom the message channel.
 //
 // Block until the message channel is closed.
 func (f *messageForwarder) ForwardMessageFrom(msgCh <-chan []byte) {
@@ -107,10 +107,10 @@ func forwardMessage(msgCh <-chan []byte, ws *websocket.Conn) {
 			break
 		}
 	}
-	ws.Close()
+	_ = ws.Close()
 }
 
-// #region useful ForwardMessageFrom* methods
+// region useful ForwardMessageFrom* methods
 
 // ForwardMessageFromStdin read Live2DRequest from stdin and send it to MessageForwarder.
 //
@@ -131,7 +131,7 @@ func (f *messageForwarder) ForwardMessageFromStdin() {
 // ForwardMessageFromHTTP read Live2DRequest from HTTP request and send it to MessageForwarder.
 //
 // Block until the HTTP server is closed (that is, never).
-func (f *messageForwarder) ForwardMessageFromHTTP(addr string) {
+func (f *messageForwarder) ForwardMessageFromHTTP(addr string) error {
 	verboseLogf("(in) Forwarding messages from HTTP (%s/live2d) to WebSocket clients...\n", addr)
 
 	router := gin.Default()
@@ -148,7 +148,19 @@ func (f *messageForwarder) ForwardMessageFromHTTP(addr string) {
 		}
 		f.SendMessage(j)
 	})
-	router.Run(addr)
+	return router.Run(addr)
 }
 
-// #endregion useful ForwardMessageFrom* methods
+// endregion useful ForwardMessageFrom* methods
+
+// region log
+
+var Verbose = false
+
+func verboseLogf(format string, a ...interface{}) {
+	if Verbose {
+		log.Printf(format, a...)
+	}
+}
+
+// endregion log
