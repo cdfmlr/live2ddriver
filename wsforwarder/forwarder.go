@@ -135,7 +135,7 @@ func (f *messageForwarder) ForwardMessageFromHTTP(addr string) error {
 	verboseLogf("(in) Forwarding messages from HTTP (%s/live2d) to WebSocket clients...\n", addr)
 
 	router := gin.Default()
-	router.GET("/live2d", func(c *gin.Context) {
+	router.Any("/live2d", func(c *gin.Context) {
 		var req live2ddriver.Live2DRequest
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
