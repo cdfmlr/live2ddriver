@@ -3,6 +3,7 @@ package emotext
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -13,6 +14,11 @@ var client = &http.Client{}
 
 func init() {
 	client.Timeout = 5 * time.Second
+
+	es := os.Getenv("EMOTEXT_SERVER")
+	if es != "" {
+		EmotextServer = es
+	}
 }
 
 // Query returns the emotions of the given text.
