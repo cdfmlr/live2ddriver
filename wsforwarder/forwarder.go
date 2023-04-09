@@ -70,7 +70,7 @@ func (f *messageForwarder) ForwardMessageTo(ws *websocket.Conn) {
 //
 // Block until message is sent to all clients.
 func (f *messageForwarder) SendMessage(msg []byte) {
-	verboseLogf("SendMessage: %s", string(msg))
+	// verboseLogf("SendMessage: %s", string(msg))
 
 	f.mu.RLock()
 	defer f.mu.RUnlock()
@@ -100,10 +100,10 @@ func (f *messageForwarder) ForwardMessageFrom(msgCh <-chan []byte) {
 //	`{"expression": "f03"}`
 func forwardMessage(msgCh <-chan []byte, ws *websocket.Conn) {
 	for msg := range msgCh {
-		verboseLogf("fwd msg: %s -> %s (chan %v).", string(msg), ws.RemoteAddr(), msgCh)
+		verboseLogf("INFO fwd msg: %s -> %s (chan %v).", string(msg), ws.RemoteAddr(), msgCh)
 		_, err := ws.Write(msg)
 		if err != nil {
-			verboseLogf("fwd msg to %s (chan %v) error: %s.", ws.RemoteAddr(), msgCh, err)
+			verboseLogf("ERROR fwd msg to %s (chan %v) error: %s.", ws.RemoteAddr(), msgCh, err)
 			break
 		}
 	}
@@ -134,7 +134,15 @@ func (f *messageForwarder) ForwardMessageFromStdin() {
 func (f *messageForwarder) ForwardMessageFromHTTP(addr string) error {
 	verboseLogf("(in) Forwarding messages from HTTP (%s/live2d) to WebSocket clients...\n", addr)
 
-	router := gin.Default()
+	router := gin.New()
+	// router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+	// 	return fmt.Sprintf("%s INFO [GIN] %s %s %s => %v %s",
+	// 		param.TimeStamp.Format("2006/01/02 15:04:05"),
+	// 		param.ClientIP, param.Method, param.Path,
+	// 		param.StatusCode, param.ErrorMessage,
+	// 	)
+	// }))
+	router.Use(gin.Recovery())
 	router.Any("/live2d", func(c *gin.Context) {
 		var req live2ddriver.Live2DRequest
 		if err := c.ShouldBind(&req); err != nil {

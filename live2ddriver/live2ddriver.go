@@ -37,7 +37,15 @@ func DriveLive2DChan(driver Live2DDriver, chIn <-chan string) (chOut chan<- Live
 func DriveLive2DHTTP(driver Live2DDriver, addr string) (chOut chan []byte) {
 	chOut = make(chan []byte, BufferSize)
 	go func() {
-		router := gin.Default()
+		router := gin.New()
+		// router.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+		// 	return fmt.Sprintf("%s INFO [GIN] %s %s %s => %v %s",
+		// 		param.TimeStamp.Format("2006/01/02 15:04:05"),
+		// 		param.ClientIP, param.Method, param.Path,
+		// 		param.StatusCode, param.ErrorMessage,
+		// 	)
+		// }))
+		router.Use(gin.Recovery())
 		router.POST("/driver", func(c *gin.Context) {
 			body := c.Request.Body
 			defer body.Close()
