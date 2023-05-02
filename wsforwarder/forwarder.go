@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +23,11 @@ const BufferSize = 8
 type messageForwarder struct {
 	msgChans []chan []byte
 	mu       sync.RWMutex // to protect msgChans
+	lastSend struct {
+		msg  []byte
+		time time.Time
+		mu   sync.Mutex
+	}
 }
 
 func NewMessageForwarder() *messageForwarder {
@@ -66,11 +72,39 @@ func (f *messageForwarder) ForwardMessageTo(ws *websocket.Conn) {
 	verboseLogf("Stop ForwardMessageTo: %s by chan %v.", ws.RemoteAddr(), ch)
 }
 
+// ignoreOpenMouthAfterEmoMotion 忽略掉那些紧随情感分析得到动作后的 OpenMouth 动作。
+// 防止情感表情动作被“开口说话”覆盖: https://github.com/cdfmlr/muvtuber/issues/35
+//
+// return true if msg is a OpenMouth after emo-motion, should be ignored.
+func (f *messageForwarder) ignoreOpenMouthAfterEmoMotion(msg []byte) bool {
+	f.lastSend.mu.Lock()
+	defer f.lastSend.mu.Unlock()
+
+	// 一秒之内的连续 motion 消息，且最后一个（当前消息）是 flick_head，
+	// 则判断为可能覆盖情感表情动作的开口说话动作，忽略掉。
+	if (time.Since(f.lastSend.time) < time.Second) &&
+		(string(msg) == `{"motion":"flick_head"}`) &&
+		(strings.Contains(string(f.lastSend.msg), `motion`)) {
+
+		return true
+	}
+
+	f.lastSend.time = time.Now()
+	f.lastSend.msg = msg
+	return false
+}
+
 // SendMessage to WebSocket clients.
 //
 // Block until message is sent to all clients.
 func (f *messageForwarder) SendMessage(msg []byte) {
 	// verboseLogf("SendMessage: %s", string(msg))
+
+	// a temporary solution to https://github.com/cdfmlr/muvtuber/issues/35
+	if f.ignoreOpenMouthAfterEmoMotion(msg) {
+		log.Printf("WARN may be a OpenMouth after emo-motion, ignore: %s", string(msg))
+		return
+	}
 
 	f.mu.RLock()
 	defer f.mu.RUnlock()
