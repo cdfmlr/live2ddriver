@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,13 @@ func DriveLive2DChan(driver Live2DDriver, chIn <-chan string) (chOut chan<- Live
 	chOut = make(chan Live2DRequest, BufferSize)
 	go func() {
 		for textIn := range chIn {
-			chOut <- driver.Drive(textIn)
+			res := driver.Drive(textIn)
+
+			if reflect.ValueOf(res).IsZero() {
+				continue
+			}
+
+			chOut <- res
 		}
 	}()
 	return chOut
@@ -57,6 +64,10 @@ func DriveLive2DHTTP(driver Live2DDriver, addr string) (chOut chan []byte) {
 			}
 
 			res := driver.Drive(string(text))
+			if reflect.ValueOf(res).IsZero() {
+				c.JSON(http.StatusBadRequest, gin.H{"warn": "empty Drive req"})
+				return
+			}
 
 			j, err := json.Marshal(res)
 			if err != nil {

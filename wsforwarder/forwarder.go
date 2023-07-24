@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cdfmlr/ellipsis"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/websocket"
 )
@@ -134,7 +135,7 @@ func (f *messageForwarder) ForwardMessageFrom(msgCh <-chan []byte) {
 //	`{"expression": "f03"}`
 func forwardMessage(msgCh <-chan []byte, ws *websocket.Conn) {
 	for msg := range msgCh {
-		verboseLogf("INFO fwd msg: %s -> %s (chan %v).", string(msg), ws.RemoteAddr(), msgCh)
+		verboseLogf("INFO fwd msg: %s -> %s (chan %v).", ellipsis.Centering(string(msg), 80), ws.RemoteAddr(), msgCh)
 		_, err := ws.Write(msg)
 		if err != nil {
 			verboseLogf("ERROR fwd msg to %s (chan %v) error: %s.", ws.RemoteAddr(), msgCh, err)
