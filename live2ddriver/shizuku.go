@@ -3,8 +3,6 @@ package live2ddriver
 import (
 	"live2ddriver/emotext"
 	"sync"
-
-	"golang.org/x/exp/constraints"
 )
 
 // This file is a driver for following model (shizuku):
@@ -143,16 +141,3 @@ func (d *shizukuDriver) updateEmotion(text string) error {
 }
 
 // #endregion shizukuDriver
-
-func keyOfMaxValue[K comparable, V constraints.Ordered](m map[K]V) K {
-	var maxKey K = *new(K)
-	var maxValue V = *new(V)
-
-	for k, v := range m {
-		if v >= maxValue {
-			maxKey, maxValue = k, v
-		}
-	}
-
-	return maxKey
-}
