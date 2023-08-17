@@ -2,7 +2,7 @@ package live2ddriver
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"reflect"
 
@@ -57,7 +57,7 @@ func DriveLive2DHTTP(driver Live2DDriver, addr string) (chOut chan []byte) {
 			body := c.Request.Body
 			defer body.Close()
 
-			text, err := ioutil.ReadAll(body)
+			text, err := io.ReadAll(body)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
