@@ -1,5 +1,8 @@
 package live2ddriver
 
+// Model specific drivers are deprecated. Everything isto be removed in the 
+// later v0.2.x. Keeping it here for compatibility & testing (emotion_test.go).
+
 import (
 	"live2ddriver/emotext"
 	"sync"
