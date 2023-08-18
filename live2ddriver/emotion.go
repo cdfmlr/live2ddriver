@@ -21,7 +21,7 @@ type EmotionExpressionMapper interface {
 	Map(e Emotion) (Motion, Expression)
 }
 
-// statelessMapper is a stateless EmotionExpression implementation.
+// statelessEmoMapper is a stateless EmotionExpression implementation.
 //
 // Its full name is:
 //
@@ -30,25 +30,25 @@ type EmotionExpressionMapper interface {
 // It maps Emotion to Motion & Expression by maps.
 // The maps are constructed by user.
 // Mathematically it's a Maximum A Posteriori (MAP) Estimation.
-type statelessMapper struct {
+type statelessEmoMapper struct {
 	// Emotion => Motion
 	MotionFromEmotion map[EmotionsKey]Motion
 	// Polarity => Expression
 	ExpressionFromPolarity map[PolarityKey]Expression
 }
 
-// NewStatelessMapper returns a statelessMapper.
-func NewStatelessMapper(
+// NewStatelessEmoMapper returns a statelessMapper.
+func NewStatelessEmoMapper(
 	motionFromEmotion map[EmotionsKey]Motion,
 	expressionFromPolarity map[PolarityKey]Expression,
 ) EmotionExpressionMapper {
-	return &statelessMapper{
+	return &statelessEmoMapper{
 		MotionFromEmotion:      motionFromEmotion,
 		ExpressionFromPolarity: expressionFromPolarity,
 	}
 }
 
-func (m *statelessMapper) Map(e Emotion) (Motion, Expression) {
+func (m *statelessEmoMapper) Map(e Emotion) (Motion, Expression) {
 	motion := m.MotionFromEmotion[keyOfMaxValue(e.Emotions)]
 	expression := m.ExpressionFromPolarity[keyOfMaxValue(e.Polarity)]
 
