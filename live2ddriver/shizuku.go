@@ -112,6 +112,9 @@ func (d *shizukuDriver) Drive(textIn string) Live2DRequest {
 // updateEmotion call emotext to analyze the text, and update the emotion
 // and polarity of the driver.
 //
+//	def updateEmotion(self, e: Emotion):
+//	    self.Emotion = (e + self.Emotion * factor) / sum(e + self.Emotion * factor)
+//
 // Lock inside.
 func (d *shizukuDriver) updateEmotion(text string) error {
 	emoResult, err := emotext.Query(text)
@@ -122,17 +125,36 @@ func (d *shizukuDriver) updateEmotion(text string) error {
 	emotions := emotext.Emotions21To7(emoResult.Emotions)
 	polarity := emoResult.Polarity
 
-	// calculate: e = e + e0 * factor
+	// calculate: e = (e + e0 * factor) / sum(e + e0 * factor)
+
+	var sumEmotion, sumPolarity float32 = 0.0, 0.0
+
 	d.mu.RLock()
 	// emotions.Add(&d.emotion, EmotionChangeFactor)
 	for k, v := range d.emotion {
 		emotions[k] += v * EmotionChangeFactor
+		sumEmotion += emotions[k]
 	}
 	// polarity.Add(&d.polarity, EmotionChangeFactor)
 	for k, v := range d.polarity {
 		polarity[k] += v * EmotionChangeFactor
+		sumPolarity += polarity[k]
 	}
 	d.mu.RUnlock()
+
+	if sumEmotion <= 1e-6 {
+		sumEmotion = 1.0
+	}
+	if sumPolarity <= 1e-6 {
+		sumPolarity = 1.0
+	}
+
+	for k, v := range emotions {
+		emotions[k] = v / sumEmotion
+	}
+	for k, v := range polarity {
+		polarity[k] = v / sumPolarity
+	}
 
 	// writeback
 	d.mu.Lock()
