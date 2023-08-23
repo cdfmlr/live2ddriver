@@ -1,6 +1,6 @@
 package live2ddriver
 
-// Model specific drivers are deprecated. Everything isto be removed in the 
+// Model specific drivers are deprecated. Everything isto be removed in the
 // later v0.2.x. Keeping it here for compatibility & testing (emotion_test.go).
 
 import (
@@ -69,6 +69,7 @@ var shizukuMotionsFromEmotions = map[string]shizukuMotion{
 
 // #region shizukuDriver
 
+// Deprecated: Legacy model-specific driver.
 type shizukuDriver struct {
 	currentExpression shizukuExpression
 	currentMotion     shizukuMotion
@@ -79,12 +80,15 @@ type shizukuDriver struct {
 	mu sync.RWMutex
 }
 
-func NewShizukuDriver() Live2DDriver {
+// Deprecated: Legacy model-specific driver.
+func NewShizukuDriver() LegacyText2ReqLive2DDriver {
 	return &shizukuDriver{}
 }
 
+// Deprecated: Legacy model-specific driver.
 var EmotionChangeFactor float32 = 0.2
 
+// Deprecated: Legacy model-specific driver.
 func (d *shizukuDriver) Drive(textIn string) Live2DRequest {
 	d.updateEmotion(textIn)
 
@@ -109,6 +113,8 @@ func (d *shizukuDriver) Drive(textIn string) Live2DRequest {
 	return req
 }
 
+// Deprecated: Legacy model-specific driver.
+//
 // updateEmotion call emotext to analyze the text, and update the emotion
 // and polarity of the driver.
 //

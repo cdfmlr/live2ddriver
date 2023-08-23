@@ -6,6 +6,7 @@ type Live2DRequest struct {
 	Motion     string    `json:"motion,omitempty"`     // motion group
 	Expression string    `json:"expression,omitempty"` // expression id (name or index)
 	Speak      *Speaking `json:"speak,omitempty"`      // speak audio (lip sync)
+	Emotion    *Emotion  `json:"emotion,omitempty"`    // emotion: will map to motion & expression by driver
 }
 
 // Speaking is the message format for Live2DView speaking (lip sync).

@@ -23,6 +23,7 @@ var (
 
 	// drivers
 
+	// Deprecated: Legacy model-specific driver.
 	shizukuAddr = flag.String("shizuku", "", "Shizuku driver server address (text in). Empty to disable. (e.g. localhost:9004)")
 )
 
@@ -72,7 +73,11 @@ func main() {
 			}
 		}()
 	}
+
+	// Deprecated: Legacy model-specific driver.
 	if *shizukuAddr != "" {
+		log.Println("Warning: the model-specific driver (-shizuku) is deprecated. Use the universal driver instead.")
+
 		driver := live2ddriver.NewShizukuDriver()
 
 		go func() {
