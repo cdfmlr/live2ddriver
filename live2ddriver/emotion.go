@@ -15,7 +15,6 @@ type (
 
 	EmotionsKey = string // typeof(key(Emotion.Emotions))
 	PolarityKey = string // typeof(key(Emotion.Polarity))
-
 )
 
 // EmotionExpressionMapper is the interface for Emotion <-> Live2d Motion & Expression mapping.
@@ -105,8 +104,8 @@ func keyOfMaxValue[K comparable, V constraints.Ordered](m map[K]V) K {
 //	i =  0.0, j =  1.0, k = -0.1
 //
 // These numbers make the emotion more stable. Looks like the Lenz's law:
-// It's tested (see Test_statefulEmoMapper in emotion_test.go) to be able to 
-// forget the very-old memory but still keep sensitive to the newer memory & 
+// It's tested (see Test_statefulEmoMapper in emotion_test.go) to be able to
+// forget the very-old memory but still keep sensitive to the newer memory &
 // the new stimulus.
 //
 // ⚠️  I am a math muggle. I don't know if it's correct or not even wrong.
